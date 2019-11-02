@@ -18,6 +18,20 @@ fs.readdir('./events/', (err, files) => {
   });
 });
 
+
+
+client.on("guildMemberAdd", member => {
+	let autorole = JSON.parse(fs.readFileSync("./joinrole.json", "utf8"));
+	if (!autorole[member.guild.id]) { // jika tidak ada autorole yang di set, agar tidak error saat ada yang join
+		autorole[member.guild.id] = {
+			autorole: config.autorole
+		};
+	}
+	var role = autorole[member.guild.id].role;
+	if (!role) return; // jika autorole 0 maka akan dihentikan dan tidak menyebabkan error
+	member.addRole(role);
+});
+
 client.on("message", message => {
   if (message.author.bot) return; //ignores bots
   //if (message.channel.type !== 'text') return; 
