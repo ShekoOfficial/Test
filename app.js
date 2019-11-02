@@ -2,6 +2,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const fs = require('fs');
 const sql = require('sqlite');
+const db = require('quick.db');
 const config = require('./config.json');
 const levelerCore = require('./functions/levelSystem');
 const talkedRecently = new Set();
@@ -18,7 +19,63 @@ fs.readdir('./events/', (err, files) => {
   });
 });
 
+client.on('ready', function() {
+  console.log(`Bot has started, with ${client.users.size} users, ${client.guilds.size} guilds.`); 
+      setInterval(async () => {
+    const statuslist = [
+     ` uwu!help | Global 🌎 prefix is uwu!`,
+     ` Hello ${client.users.size} Users! & ${client.guilds.size} Guilds!`,
 
+    ]
+    const random = Math.floor(Math.random() * statuslist.length);
+    try {
+      await client.user.setPresence({
+        game: {
+          name: `${statuslist[random]}`, 
+          type: "WATCHING",
+          url: 'https://www.twitch.com'
+        },
+        status: "idle"
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }, 60000);
+});
+
+client.on('guildMemberAdd', async (member, bot, message, args) => {
+let onoff = await db.fetch(`WelcomeOnOff_${member.guild.id}`)
+if(!onoff) return null;
+let welch = await db.fetch(`Welcome_${member.guild.id}`)
+if(!welch) return null
+if(welch) {
+  let ch = member.guild.channels.get(`${welch}`)
+  ch.send(`Hello ${member} Welcome to server **${member.guild.name}** Discord Server!`)
+}
+})
+
+client.on('guildMemberRemove', async (member, bot, message, args) => {
+let onoff = await db.fetch(`WelcomeOnOff_${member.guild.id}`)
+if(!onoff) return null;
+let welch = await db.fetch(`Welcome_${member.guild.id}`)
+if(!welch) return null
+if(welch) {
+  let ch = member.guild.channels.get(`${welch}`)
+  ch.send(`**${member}** just left ${member.guild.name} Discord server! Bye bye **${member.user.username}!**`)
+}
+})
+
+/*client.on("message", async message => {
+
+  if(message.author.bot) return;
+  if(message.channel.type === "dm") return;
+
+  let prefixes = JSON.parse(fs.readFileSync("./json/prefixes.json", "utf8"));
+  if(!prefixes[message.guild.id]){
+    prefixes[message.guild.id] = {
+      prefixes: config.prefix
+    };
+  }*/
 
 client.on("guildMemberAdd", member => {
 	let autorole = JSON.parse(fs.readFileSync("./joinrole.json", "utf8"));
