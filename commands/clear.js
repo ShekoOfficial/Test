@@ -1,26 +1,24 @@
-const Discord = require("discord.js");
+const { Client } = require("discord.js");
 
-module.exports.run = async (bot, message, args) => {
-  if(args[0] == "help"){
-    let helpembxd = new Discord.RichEmbed()
-    .setColor("#00ff00")
-    .addField("clear Command", "Usage: !Clear <amount>")
+exports.run = (client, message, args, tools) => {
 
-    message.channel.send(helpembxd);
-    return;
-  } 
+  // This episode will cover purging messages from a channel.
 
-  message.delete()
+  if (!message.guild.members.hasPermission === 'MANAGE_MESSAGE') return message.channel.send('I DONT HAVE PERMISSIONS')
+  
+  // First, we need to fetch the amount of messages a user wants to purge, this will be stored in args[0].
+  if (isNaN(args[0])) return message.channel.send('**Please supply a valid amount of messages to purge**');
+  // This checks if args[0] is NOT a number, if not it runs the return statement which sends a message in chat.
+  // We also need to check if the number is LESS THAN 100, since 100 is the max you can delete at once.
+  if (args[0] > 100) return message.channel.send('**Please supply a number less than 100**');
+  // This checks if args[0] is MORE THAN 100, if it is, it returns and sends a message.
 
-  if(!message.member.hasPermission("MANAGE_MESSAGES")) return message.reply("You don't have premssions to do that!");
-  if(!args[0]) return message.channel.send("Please enter a number of messages to clear! `Usage: !clear <amount>`");
-  message.channel.bulkDelete(args[0]).then(() => {
-  message.channel.send(`**__Cleared ${args[0]} messages.__**`).then(msg => msg.delete(2000));
-});
-
+  // Now, we can delete the messages
+  message.channel.bulkDelete(args[0])
+    .then(messages => message.channel.send(`**Successfully deleted \`${messages.size}/${args[0]}\` messages**`).then(msg => msg.delete(3000))) // This sends how many messages they deleted to chat, we also want to delete this message. This deletes the message after 10000 milliseconds.
 
 }
 
-module.exports.help = {
-  name: "clear"
+exports.conf = {
+  aliases: ['purge']
 }

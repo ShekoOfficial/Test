@@ -25,6 +25,7 @@ client.on('ready', function() {
     const statuslist = [
      ` uwu!help | Global 🌎 prefix is uwu!`,
      ` Hello ${client.users.size} Users! & ${client.guilds.size} Guilds!`,
+     ` Uwu Premium soon v.5.2.0`
 
     ]
     const random = Math.floor(Math.random() * statuslist.length);

@@ -1,7 +1,7 @@
 exports.run = (client, message, args, sql) =>{
-  let uRole = message.guild.roles.find("name", "AmariMod");
+  let uRole = message.guild.roles.find("name", "UwuMod");
   if(!uRole){
-    message.reply("Please read ``:?help rlevel`` for more information on how to use it.")
+    message.reply("Please read ``uwu!help rlevel`` for more information on how to use it.")
   }else{
     if(message.member.roles.has(uRole.id)){
       let condition = args[0];

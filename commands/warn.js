@@ -10,7 +10,7 @@ exports.run = (client, message, args) => {
 
   let dmsEmbed = new Discord.RichEmbed()
   .setTitle("Warn")
-  .setColor("#00ff00")
+  .setColor("#faa8a2")
   .setDescription(`You have been warned on \`${message.guild.name}\``)
   .addField("Warned by", message.author.tag)
   .addField("Reason", reason);

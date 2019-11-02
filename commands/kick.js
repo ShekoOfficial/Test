@@ -4,11 +4,11 @@ module.exports.run = async (bot, message, args) => {
   if (!message.member.hasPermission("KICK_MEMBERS")  && message.author.id !== "291221132256870400") return message.channel.send("Sorry, you don't have permissions to use this!");
     
   let xdemb = new Discord.RichEmbed()
-  .setColor("#00ff00")
+  .setColor("#faa8a2")
   .setTitle("Kick Command")
   .addField("Description:", `Kick a member`, true)
-  .addField("Usage:", "!kick [user] [reason]", true)
-  .addField("Example:" ,"!kick @Odar spam")
+  .addField("Usage:", "uwu!kick [user] [reason]", true)
+  .addField("Example:" ,"uwu!kick @Uwu spam")
 
     let member = message.mentions.members.first();
     if(!member) return message.channel.send(xdemb)

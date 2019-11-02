@@ -1,12 +1,12 @@
 exports.run = (client, message, args, sql) =>{
-    let uRole = message.guild.roles.find("name", "AmariMod");
+    let uRole = message.guild.roles.find("name", "UwuMod");
     if(!uRole){
-      message.reply("AmariMod Role not found. Please create it and assign it to yourself to be able to access the command.");
+      message.reply("UwuMod Role not found. Please create it and assign it to yourself to be able to access the command.");
     }else{
       if(message.member.roles.has(uRole.id)){
         const rMember = message.guild.member(message.mentions.users.first());
         if(!rMember){
-            message.reply("Please choose a member to by @'ing them. example: :?reset @user");
+            message.reply("Please choose a member to by @'ing them. example: uwu!reset @user");
         }else{
             sql.run(`UPDATE userScores SET globalPoints=0, weeklyPoints=0, uLevel=1, nextPL=50 WHERE userID=${rMember.user.id} AND guildID=${message.guild.id}`);
             sql.all(`SELECT userID from userScores WHERE guildID = '${message.guild.id}' ORDER BY globalPoints DESC`).then(rColumns =>{
