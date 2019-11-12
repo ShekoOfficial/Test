@@ -111,7 +111,44 @@ client.on("guildMemberAdd", async (member) => {
 });*/
 
 client.on("guildMemberRemove", async (member) => {
+  const channel = member.guild.channels.find(ch => ch.name === 'welcome');
+	if (!channel) return;
+
+	const canvas = Canvas.createCanvas(650, 250);
+	const ctx = canvas.getContext('2d');
+
+	const background = await Canvas.loadImage("https://cdn.discordapp.com/attachments/630391387195703296/643710979473145856/Kuzu-no-Honkai-03-34.jpg");
+	ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+
+	ctx.strokeStyle = '#ffffff';
+	ctx.strokeRect(0, 0, canvas.width, canvas.height);
+
+  ctx.font = '28px sans-serif';
+	ctx.fillStyle = '#ffffff';
+	ctx.fillText('Goodbyee the server!', canvas.width / 2.5, canvas.height / 3.5);
   
+  ctx.font = applyText(canvas, member.displayName);
+	ctx.fillStyle = '#ffffff';
+	ctx.fillText([member.displayName], canvas.width / 2.5, canvas.height / 1.8);
+  
+	// Select the font size and type from one of the natively available fonts
+//	ctx.font = '60px sans-serif';
+	// Select the style that will be used to fill the text in
+	//ctx.fillStyle = '#ffffff';
+	// Actually fill the text with a solid cmolor
+	//ctx.fillText(member.displayName, canvas.width / 2.5, canvas.height / 1.8);
+
+	ctx.beginPath();
+	ctx.arc(125, 125, 100, 0, Math.PI * 2, true);
+	ctx.closePath();
+	ctx.clip();
+
+	const avatar = await Canvas.loadImage(member.user.displayAvatarURL);
+	ctx.drawImage(avatar, 25, 25, 200, 200);
+
+	const attachment = new Discord.Attachment(canvas.toBuffer(), 'welcome-image-member.png');
+
+	channel.send(`> ${member.user.username} just left **${member.guild.name}!** Discord Server! Bye bye **${member.user.username}**! 🎈`, attachment);
 });
     
 client.login(process.env.TOKEN)
