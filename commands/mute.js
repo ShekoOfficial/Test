@@ -1,65 +1,58 @@
-const Discord = require("discord.js");
+const { RichEmbed, Client } = require("discord.js");
 const ms = require("ms");
+const config = require("../config.json");
+const db = require("quick.db");
 
-module.exports.run = async (client, message, args) => {
-    if (!message.member.hasPermission("MANAGE_MESSAGES")) return message.channel.send({
-        embed: {
-            description: `Sorry, but you don't have permission to use this!`
-        }
-    }) 
-    if (!message.member.hasPermission("MANAGE_MESSAGES")) return message.channel.send({
-        embed: {
-            description: `Sorry, but you do not have valid permissions! If you beleive this is a error, contact an owner.`
-        }
-    });
-    let tomute = message.guild.member(message.mentions.users.first() || message.guild.members.get(args[0]));
-    if (!tomute) return message.channel.send({
-        embed: {
-            description: `Couldn't find user.`
-        }
-    });
-    if (tomute.hasPermission("MANAGE_MESSAGES")) return message.channel.send({
-        embed: {
-            description: `The user you are trying to mute is either the same, or higher role than you.`
-        }
-    });
-    let muterole = message.guild.roles.find(`name`, "Muted");
-    if (!muterole) {
-        try {
-            muterole = await message.guild.createRole({
-                name: "Muted",
-                color: "#000000",
-                permissions: []
-            })
-            message.guild.channels.forEach(async (channel, id) => {
-                await channel.overwritePermissions(muterole, {
-                    SEND_MESSAGES: false,
-                    ADD_REACTIONS: false
-                })
-            });
-        } catch (e) {
-            console.log(e.stack);
-        }
-    }
-    let mutetime = args[1];
-    if (!mutetime) return message.channel.send({
-        embed: {
-            description: `You didn't specify a time!`
-        }
-    });
-    await (tomute.addRole(muterole.id));
-    message.channel.send({
-        embed: {
-            description: `<@${tomute.id}> has been muted for ${ms(ms(mutetime))}`
-        }
-    });
-    setTimeout(function() {
-        tomute.removeRole(muterole.id);
-        message.channel.send({
-            embed: {
-                description: `<@${tomute.id}> has been unmuted!`
-            }
+exports.run = async (client, msg, args) => {
+
+  let tomute = msg.guild.member(msg.mentions.users.first() || msg.guild.members.get(args[0]));
+  let reason = args.slice(1).join(' ');
+  let channeltarget = await client.memory.fetch(`ModLog.${msg.guild.id}.channel`)
+  let channelmark = await client.memory.fetch(`ModLog.${msg.guild.id}.on`)
+  
+  if (!channeltarget) return msg.channel.send("Please You must set modlog channel!");
+  if (!channelmark) return msg.channel.send("Please turn on modlog!");
+  
+if (channelmark == true) {
+  let logs = msg.guild.channels.get(channeltarget);
+  
+  if (!tomute) return msg.channel.send(`<@${msg.author.id}>, Please specify a Member To Mute!`);
+  if (!reason) return msg.channel.send(`<@${msg.author.id}>, Please specify a Reason For This Mute!`);
+  
+  if (tomute.hasPermission("MANAGE_MESSAGES")) return msg.reply("Can't mute them!");
+  let muterole = msg.guild.roles.find(`name`, "Muted");// hmm
+  
+  if(!muterole){
+    try{
+      muterole = await msg.guild.createRole({
+        name: "Muted",
+        color: "#000000",
+        permissions:[]
+      })
+      msg.guild.channels.forEach(async (channel, id) => {
+        await channel.overwritePermissions(muterole, {
+          SEND_MESSAGES: false,
+          ADD_REACTIONS: false
         });
-    }, ms(mutetime));
-    message.delete().catch(O_o=>{}); 
+      });
+    }catch(e){
+      console.log(e.stack);
+    }
+  }
+
+  let embed = new RichEmbed()
+  .setColor('RANDOM')
+  .setAuthor("CraftyBoat | Mute", `${client.user.displayAvatarURL}`)
+  .setThumbnail(`${tomute.user.displayAvatarURL}`)
+  .addField("Muted Member", `${tomute.user.username} with ID: ${tomute.user.id}`)
+  .addField("Muted By", `${msg.author.username} with ID: ${msg.author.id}`)
+  .addField("Muted Time", msg.createdAt)
+  .addField("Muted At", msg.channel)
+  .addField("Muted Reason", reason)
+  
+  await(tomute.addRole(muterole.id));
+  logs.send(embed);
+} else {
+  return msg.channel.send("You do not set modlog channel you must set it!")
+}
 }

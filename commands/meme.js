@@ -10,7 +10,7 @@ module.exports.run = async (client, message, args) => {
         .setTimestamp()
         .setImage(url)
         .setColor(`${message.guild.me.displayHexColor!=='#000000' ? message.guild.me.displayHexColor : 0xffffff}`)
-        .setFooter("All rights reserved ©ArilOfficial Development in 2019") 
+        .setFooter("All rights reserved ©Awn baokk Development in 2019") 
         message.channel.send({ embed });
     })
 }

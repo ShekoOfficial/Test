@@ -1,31 +1,55 @@
+const { ShardingManager } = require('discord.js');
 const Discord = require("discord.js");
+const { owners_id } = require("../config.json");
+const moment = require("moment-timezone");
+const db = require('quick.db')
+const ms = require("ms");
+const send = require(`quick.hook`);
+const fs = require("fs");
+const fetchUser = require("discord.js");
+const shard = require("discord.js");
+const uptime = require("discord.js");
+const path = require("path");
+const Budi = require("discord.js").RichEmbed
+const { post } = require('snekfetch');
+const status = require("discord.js");
+const { Canvas } = require('canvas-constructor');
+let queue = new Discord.Collection();
+const ytdl = require("ytdl-core");
+const youtube = require("simple-youtube-api");
 
-module.exports.run = async (client, message, args) => {
-    let embed = new Discord.RichEmbed()
-    .setTitle("Evaluation")
-    .setDescription("Sorry, the `eval` command can only be executed by the Developer.")
-    .setColor("#cdf785");
-    if(message.author.id !== '501667875967336458') return message.channel.send(embed);
-    function clean(text) {
-        if(typeof(text) === "string")
-        return text.replace(/'/g, "'" + String.fromCharCode(8203)).replace(/@/g, "@" + String.fromCharCode(8203));
-        else
-        return text;
-    } try {
-        const code = args.join(" ");
-        let evaled = eval(code);
-        let rawEvaled = evaled;
-        if (typeof evaled !== "string")
-        evaled = require("util").inspect(evaled);
+exports.run = async (client, message, args, color, prefix) => {
+    if(message.author.id !== "501667875967336458" && message.author.id !== "501667875967336458") return message.channel.send("You cannot use this command because, you are not a developer.")
+    
+    var msg = message;
+  
+    var serverQueue = queue.get(message.guild.id);
+
+    try {
+        let codein = args.join(" ");
+        let code = eval(codein);
+
+        if (typeof code !== 'string')
+            code = require('util').inspect(code, { depth: 0 });
         let embed = new Discord.RichEmbed()
-        .setTitle(`Evaluated in ${Math.round(client.ping)}ms`)
-        .addField(":inbox_tray: Input", `\`\`\`js\n${code}\n\`\`\``)
-        .addField(":outbox_tray: Output", `\`\`\`js\n${clean(evaled).replace(client.token, "Are you retarded?")}\n\`\`\``)
-        .addField('Type', `\`\`\`xl\n${(typeof rawEvaled).substr(0, 1).toUpperCase() + (typeof rawEvaled).substr(1)}\n\`\`\``)
-        .setColor("RANDOM")
-        .setFooter("All rights reserved ©ArilOfficial Development in 2019");
-        message.channel.send({embed});
-    } catch (err) {
-        message.channel.send(`\`ERROR\` \`\`\`js\n${clean(err)}\n\`\`\``);
-        }
+        .setAuthor('Evaluate')
+        .setColor('RANDOM')
+        .addField(':inbox_tray: Input', `\`\`\`js\n${codein}\`\`\``) 
+        .addField(':outbox_tray: Output', `\`\`\`js\n${code}\n\`\`\``)
+        message.channel.send(embed).then(embedMessage => {
+        embedMessage.react("✅");
+})
+    } catch(e) {
+        message.channel.send(`\`\`\`js\n${e}\n\`\`\``).then(embedMessage => {
+        embedMessage.react("❌");
+    })
     }
+}
+
+exports.conf = {
+  aliases: ['ev']
+}
+
+exports.help = {
+    name: 'eval'
+}

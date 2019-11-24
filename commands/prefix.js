@@ -1,28 +1,24 @@
 const Discord = require("discord.js");
 const fs = require("fs");
 
-module.exports.run = async (client, message, args) => {
-    if(!message.member.hasPermission("MANAGE_GUILD")) return message.channel.send({
-        embed: {
-            description: `🚫 **| You don't have __MANAGE_GUILD__ perms.**`
-        }
-    })
-    if(!args[0]) return message.channel.send({
-        embed: {
-            description: `Please specify something!`
-        }
-    })
-    let prefixes = JSON.parse(fs.readFileSync("./asset/prefixes.json", "utf8"));
-    prefixes[message.guild.id] = {
-        prefixes: args[0]
-    };
-    fs.writeFile("./asset/prefixes.json", JSON.stringify(prefixes), (err) => {
-        if (err) console.log(err)
-    });
-    let seEmbed = new Discord.RichEmbed()
-    .setColor("#FF9900")
-    .setTitle("Change the prefix")
-    .setColor("RANDOM")
-    .setDescription(`Change ${message.prefix} to ${args[0]}`);
-    message.channel.send(seEmbed);
+exports.run = async (client, msg, args) => {
+  if(!msg.member.hasPermission("MANAGE_GUILD")) return msg.channel.send("You don't have permissions to set prefix!");
+  if(!args[0]) return msg.channel.send("Please specify a prefix!");
+  
+  let crafty = JSON.parse(fs.readFileSync("./crafty.json", "utf8"));
+  crafty[msg.guild.id] = {
+    prefix: args[0]
+  }
+  
+  fs.writeFile("./crafty.json", JSON.stringify(crafty), (err) => {
+     if(err) console.log(err);
+  })
+  
+  msg.channel.send(`Prefix has been set to ${args[0]}`);
+}
+exports.conf = {
+  aliases: ['prf']
+}
+exports.help = {
+  name: 'prefix'
 }

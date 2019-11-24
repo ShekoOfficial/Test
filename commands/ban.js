@@ -1,53 +1,42 @@
 const Discord = require("discord.js");
+const config = require("../config.json");
+const db = require("quick.db");
 
-module.exports.run = async (client, message, args) => {
-    let bUser = message.guild.member(message.mentions.users.first() || message.guild.members.get(args[0]));
-    if(bUser === message.author) return message.channel.send({
-        embed: {
-            description: `Are you retarded? Why do you want to ban yourself?`
-        }
-    })
-    if(!bUser) return message.channel.send({
-        embed: {
-            description: `Can't find user!`
-        }
-    })
-    let bReason = args.join(" ").slice(22);
-    if(!bReason) return message.channel.send({
-        embed: {
-            description: `Please provide a reason!`
-        }
-    })
-    if(!message.member.hasPermission("BAN_MEMBERS")) return message.channel.send({
-        embed: {
-            description: `<:no_entry_sign:432418492667396097> **| You don't have __BAN_MEMBERS__ permissons.**`
-        }
-    })
-    let banEmbed = new Discord.RichEmbed()
-    .setDescription("Ban")
-    .setColor("#bc0000")
-    .addField("User", bUser.user.tag)
-    .addField("Moderator", message.author.tag)
-    .addField("Reason", bReason)
-    .setTimestamp()
-    let incidentchannel = message.guild.channels.find(`name`, "mod-log");
-    if(!incidentchannel) return message.channel.send({
-        embed: {
-            description: `<:x:432418492667396097> **| Can't find __mod-log__ channel.**`
-        }
-    })
-    let embed = new Discord.RichEmbed()
-    .setTitle("BAN")
-    .addField("Banned In", message.guild.name)
-    .setColor("#bc0000")
-    .addField("Moderator", message.author.tag)
-    .addField("Reason", bReason)
-    bUser.send(embed);
-    message.channel.send({
-        embed: {
-            description: `<:white_check_mark:432418492889694210> **| That member has been banned.**`
-        }
-    })
-    bUser.ban(bReason)
-    incidentchannel.send(banEmbed);
+exports.run = async(client, msg, args) => {
+  
+  let banTaged = msg.guild.member(msg.mentions.users.first() || msg.guild.members.get(args[0]));
+  let reason = args.slice(1).join(' ');
+  let channeltarget = await client.memory.fetch(`ModLog.${msg.guild.id}.channel`)
+  let channelmark = await client.memory.fetch(`ModLog.${msg.guild.id}.on`)
+  
+  if (!channeltarget) return msg.channel.send("Please You must set modlog channel!");
+  if (!channelmark) return msg.channel.send("Please turn on modlog!");
+  
+if (channelmark == true) {
+  let logs = msg.guild.channels.get(channeltarget);
+  
+  if (!msg.member.hasPermissions("BAN_MEMBERS")) return msg.channel.send("You don't have permissions to Use this command!");
+  
+  if (!banTaged) return msg.channel.send(`<@${msg.author.id}>, Please specify a Member To Ban!`);
+  if (!reason) return msg.channel.send(`<@${msg.author.id}>, Please specify a Reason For This Ban!`);
+  //if (!logs) return msg.channel.send(`<@${msg.author.id}>, Please create a Channel Called ${config.logsChannel} to log the bans!`);
+  
+  let embed = new Discord.RichEmbed()
+  .setColor('RANDOM')
+  .setThumbnail(banTaged.user.displayAvatarURL)
+  .addField("Banned Member", `${banTaged.user.username} with ID: ${banTaged.user.id}`)//
+  .addField("Banned By", `${msg.author.username} with ID: ${msg.author.id}`)
+  .addField("Banned Time", msg.createdAt)
+  .addField("Banned At", msg.channel)
+  .addField("Banned Reason", reason)
+  .setTimestamp()
+  .setFooter(`• Ban User Information`, banTaged.user.displayAvatarURL);
+  
+  msg.channel.send(`${banTaged.user.username} has been Banned by ${msg.author} Beacuse: ${reason}`);
+  banTaged.ban(reason);
+  logs.send(embed);  
+} else {
+  return msg.channel.send("You do not set modlog channel you must set it!")
 }
+};
+// Let's test it out!

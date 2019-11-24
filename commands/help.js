@@ -1,36 +1,75 @@
+//This command will be required package discord.js
 const Discord = require("discord.js");
+const { RichEmbed } = require("discord.js");
+const config = require("../config.json");
+const fs = require("fs");
 
-module.exports.run = async (bot, message, args) => {
-  const embed = new Discord.RichEmbed()
+exports.run = async(client, msg, args) => { // Modification
+  let crafty = JSON.parse(fs.readFileSync("./crafty.json", "utf8"));
+  if(!crafty[msg.guild.id]){ 
+     crafty[msg.guild.id] = {
+       prefix: config.prefix
+     }
+  }
   
-  .setTitle("List of Commands.")
-  .setDescription("__Sheko Help List!__")
-  .setColor("RANDOM")
-  .setAuthor(`Help List Sheko`, "https://images-ext-2.discordapp.net/external/GdjB4CeLIR5fXW5pTh8gfBZAshRK4XytrljlmvltYrs/%3Fsize%3D2048/https/cdn.discordapp.com/avatars/577757256389492736/f0d0aa9589b2138ef1102c29d8ddb16e.png?width=616&height=616")
-  .setThumbnail("https://images-ext-2.discordapp.net/external/GdjB4CeLIR5fXW5pTh8gfBZAshRK4XytrljlmvltYrs/%3Fsize%3D2048/https/cdn.discordapp.com/avatars/577757256389492736/f0d0aa9589b2138ef1102c29d8ddb16e.png?width=616&height=616")
-  .addField ("s~welcome","**__set up your welcome message channel.__**")
-  .addField("s~main","**display all the __main__ commands** \n 25 cmds available.", false)
-  .addField("s~mod","**display all __mods__ commands** \n 9 cmds available.", false)
-  .addField("s~fun", "**display all __fun__ commands** \n 19 cmds available.", false)
-  .addField("s~time","**display all the __time__ commands** \n 3 cmds available.")
-  .addField("s~radio","**display all the __radio__ commands** \n 7 cmds available.")
-  .addField("s~game","**display the __game__ commands** \n 8 cmds available.",false)
-  .addField("s~music","**display all the __music__ commands** \n 9 cmds available.",false)
- .addField("s~nsfw","**display all the __nsfw__ commands** \n 23 cmds available.",false)
-  .addField("s~dev","**display all the __developer__ commands** \n 4 cmds available.")
-    .addField("s~giveaway","**display all the __giveaways__ commands** \n 7 cmds available.")
-  .addField("s~statistics", "**display all the __statistics__ commands** \n 16 cmds available.", false)
-  .addField("s~ticket","**display all the __ticket__ commands** \n 3 cmds available.")
-    .addField("s~soundboard (IN WORK)","**display all the __soundboard__ command** \n 15 cmds available.")
-        .addField("s~hd","**HD music player** \n 10 cmds available.")
-  .addField("Support","| [Support Server](https://discord.gg/kcSv2yq) | [Vote](Comingsoon) | [Invite me to your Server](https://discordapp.com/oauth2/authorize?client_id=577757256389492736&scope=bot&permissions=2146958591) |")
-  .addField("bad words filter on ❌","This will remove all bad word.",false)
-  .setFooter("If you found a bug please report it using s~bugreport", "https://images-ext-2.discordapp.net/external/GdjB4CeLIR5fXW5pTh8gfBZAshRK4XytrljlmvltYrs/%3Fsize%3D2048/https/cdn.discordapp.com/avatars/577757256389492736/f0d0aa9589b2138ef1102c29d8ddb16e.png?width=616&height=616")
+  //if (!args[0]) {
+    
+    let embed1 = new RichEmbed()
+    .setColor('BLUE')
+    .setTitle(`${client.user.username}'s Help List!`)
+    .setAuthor(`My prefix is ${crafty[msg.guild.id].prefix}`, client.user.displayAvatarURL)
+    .setThumbnail(client.user.displayAvatarURL)
+    .setTimestamp()
+    .setFooter(`Created By | CraftyBoat Team's`)
+    .addField(":hammer_pick: Utility", `Use \`${crafty[msg.guild.id].prefix}Utility\``)
+    .addField(":musical_note: Music", `Use \`${crafty[msg.guild.id].prefix}Music\``)
+    .addField(":money_with_wings: Economy [Beta 2.1]", `Use \`${crafty[msg.guild.id].prefix}Economy\``)
+    .addField(":warning: Administrator", `Use \`${crafty[msg.guild.id].prefix}Administrator\``)
+    .addField(":lock: Developer", `Use \`${crafty[msg.guild.id].prefix}Developer\``)
+    .addField(":helmet_with_cross: Support Bot", `Use \`${crafty[msg.guild.id].prefix}Developer\``)
+    
+    let embed2 = new Discord.RichEmbed()
+  
+  .setColor('BLUE')
+ .addField('Invite Me »','[Click Here!](https://discordapp.com/oauth2/authorize?client_id=628587789667008549&scope=bot&permissions=2146958591)', true)
+  .addField('Official Server Bot »', '[Click Here!](https://discord.gg/EuEUBSu)')
+  .addField('Subscribe Developer »', '[Click Here!](https://www.youtube.com/channel/UCaB6NwTJ-UlLsk4YiOvqEDQ?sub_confirmation=1)')
+  
   
 
-  message.channel.send(embed).then(message => message.react('✔'))
-
+   // msg.channel.send(embed1).then(m => m.channel.send(embed2))
+    
+  //}
+  
+  let embed = new Discord.RichEmbed()  // This is a defined for Embed
+  .setColor('BLUE') // This is a color for The Embed
+  .setTitle(`${client.user.username}'s Help Commands`) // This for A Title in from Embed
+  .setAuthor(`My prefix is ${crafty[msg.guild.id].prefix}`, client.user.displayAvatarURL)
+  .setTimestamp()
+  .setFooter(`Requested By: ${msg.author.tag}`)
+  .addField(":hammer_pick: Utility", "**avatar, ping, help, say, botinfo, serverinfo, afk [Dev Mode], poll, serverrole, bugreport, premium, svs, profile, user [Mention User]**") // You cant add The Command in Here and You cant add Any more field for The Type Commands
+  .addField(":warning: Administrator", "**modlog, clear, report, ban, kick, prefix, mute, unmute, welcomer, embedtext**")// This is page two of the field
+  .addField(":money_with_wings: Economy [Beta 2.1]", "**balance, daily, pay, work, mine**") // This is page three of the field and you know you can't add ; in all field! in the end field you can add 
+  .addField(":musical_note: Music", "**play, skip, stop, volume, np, queue, pause, resume, dc, loop**")
+  .addField(":trophy: Leveling", "**setLevel [Do it first to see your level], level, levelinfo**")
+  .addField(":military_medal: Entertaiment", "**bond, 8ball, quiz, roll, slot joke, anime, animeme**")
+  .addField(":tada: Special", "**ship, pat, clap, bond, hug, kiss, tickle**")
+  .addField(":satellite: Media Sosial", "**instagram, facebook**")
+  .addField(":lock: Developer", "**eval, exec, restart**")
+  msg.channel.send(embed).then(msg => {
+    
+    msg.channel.send(embed2).then(message =>{message.react("✅")});
+    
+  })
+  // This is will be send The Embed
 }
-module.exports.help = {
-  name: "s~help"
+// Let's test it out!
+
+
+exports.conf = {
+  aliases: ['h']
+}
+
+exports.help = {
+  name: "Help"
 }

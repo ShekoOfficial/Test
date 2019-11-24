@@ -1,12 +1,8 @@
-const Discord = require("discord.js");
-
-module.exports.run = async (client, message, args) => {
-    if(!message.member.hasPermission("MANAGE_MESSAGES")) return message.channel.send({
-        embed: {
-            description: `Sorry, but you don't have permission to use this!`
-        }
-    })
-    const sayMessage = args.join(" ");
-    message.delete().catch(O_o=>{});
-    message.channel.send(sayMessage);
+exports.run = (client, message, args) => {
+ let say = args.join(' ');
+ if (!say) return message.channel.send("Send A Text For Say!");
+ message.delete();
+ message.channel.send(say)
 }
+
+// bot lu dh online 24 jam tanpa lu di web

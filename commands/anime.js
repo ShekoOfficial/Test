@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 const malScraper = require('mal-scraper');
 
-module.exports.run = async (client, message, args) => {
+module.exports.run = async (client, msg, args) => {
   const search = `${args}`
   malScraper.getInfoFromName(search)
   .then((data) => {
@@ -18,7 +18,7 @@ module.exports.run = async (client, message, args) => {
     .addField('Score', data.score, true)
     .addField('Score Stats', data.scoreStats, true)
     .addField('Link', data.url);
-    message.channel.send(anime);
+    msg.channel.send(anime);
   })
   .catch((err) => console.log (err));
 }
