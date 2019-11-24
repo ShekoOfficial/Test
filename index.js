@@ -1,154 +1,560 @@
-// Walcomer Bot 1.0 - Created by Dob6458 and ChocolateAwn
-const express = require("express");
+const http = require('http');
+const express = require('express');
 const app = express();
-const invites = {};
-const wait = require('util').promisify(setTimeout);
-
-const http = require("http");
+app.get("/", (request, response) => {
+  console.log(Date.now() + " Ping Received");
+  response.sendStatus(200);
+});
+app.listen(process.env.PORT);
+setInterval(() => {
+  http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);
+}, 280000);
 
 const Discord = require("discord.js");
-const client = new Discord.Client();
+const superagent = require("superagent");
+const Youtube = require("simple-youtube-api");
+const ytdl = require("ytdl-core");
+const opus = require("opusscript");
+const moment = require("moment");
+const { Canvas } = require("canvas-constructor");
+const { resolve, join } = require("path");
+const { Attachment } = require("discord.js");
+const { get } = require("snekfetch");
+const fs = require("fs");
+const db = require('quick.db');
+const config = require("./asset/config.json")
+const coins = require("./asset/coins.json");
+const xp = require("./asset/xp.json");
+const prefix = `${config.prefix}`
+var color = Math.floor(Math.random() * 16777214) + 1
+var commandcooldown = new Set();
+var queue = new Map();
+var client = new Discord.Client({
+  disableEveryone: true
+})
+var youtube = new Youtube(process.env.YOUTUBE)
 
-const Canvas = require("canvas");
+client.on('ready', function() {
+  console.log(`Bot has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`);
+  setInterval(async () => {
+    const statuslist = [
+      `!help | @Athuko Verification`,
+      `v2.4.5 | ${client.guilds.size} Server`,
+      `v2.4.5 | ${client.channels.size} Channel`,
+      `v2.4.5 | ${client.users.size} User`,
+      `${moment().utcOffset('+0700').format("HH:mm A")} WIB`
+    ];
+    const random = Math.floor(Math.random() * statuslist.length);
+    try {
+      await client.user.setPresence({
+        game: {
+          name: `${statuslist[random]}`,
+          type: "STREAMING",
+          url: 'https://www.twitch.tv/arilofficial'
+        },
+        status: "dnd"
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }, 60000);
+});
 
-const port = 3000;
+client.on("guildMemberAdd", async (member, client, message, args, level) => {
+  var namam = member.user.username
+  var jadim = namam.length > 12 ? namam.substring(0, 10) + "..." : namam;
+  async function createCanvas() {
+    var imageUrlRegex = /\?size=2048$/g;
+    var {body: background} = await superagent.get("https://cdn.discordapp.com/attachments/630391387195703296/636195360762495006/images.png");
+    var {body: avatar} = await superagent.get(member.user.displayAvatarURL.replace(imageUrlRegex, "?size=128"));
+    var {body: botavatar} = await superagent.get("https://media.discordapp.net/attachments/574815867586478080/579521499686502413/anime-romance-school-5.jpg");
+    return new Canvas(856, 376)
+    .addImage(avatar, 50, 50, 100, 100, 128)
+    .setColor("RANDOM")
+    .setTextFont('50px System')
+    .setTextAlign('center')
+    .setTextFont('30px Arial')
+    .addImage(background, 0, 0, 0, 0)
+    .addImage(botavatar, 0, 0, 856, 376)
+    .addText("WELCOME", 625, 105)
+    .addText(`${jadim}#${member.user.discriminator}`, 625, 145)
+    .addRoundImage(avatar, 135, 10, 256, 256, 128)
+    .toBufferAsync();
+  }
+  var welcome = JSON.parse(fs.readFileSync("./asset/welcome.json", "utf8"))
+  if (!welcome[member.guild.id]) {
+    welcome[member.guild.id] = {
+      welcome: 0
+    };
+  }
+  let channel = member.guild.channels.get(`${welcome[member.guild.id].nick}`);
+  if (!channel) return;
+  channel.send(new Discord.Attachment(await createCanvas()));
+});
 
-client.on("ready", () => {
-  console.log(`Logged in as: ${client.user.tag}`);
+client.on("guildMemberRemove", async (member, client, message, args, level) => {
+  var namam = member.user.username
+  var jadim = namam.length > 12 ? namam.substring(0, 10) + "..." : namam;
+  async function createCanvas() {
+    var imageUrlRegex = /\?size=2048$/g;
+    var {body: background} = await superagent.get("https://media.discordapp.net/attachments/574815918966833152/579230496509394954/testing.png");
+    var {body: avatar} = await superagent.get(member.user.displayAvatarURL.replace(imageUrlRegex, "?size=128"));
+    var {body: botavatar} = await superagent.get("https://media.discordapp.net/attachments/574815867586478080/579521499686502413/anime-romance-school-5.jpg");
+    return new Canvas(856, 376)
+    .addImage(avatar, 50, 50, 100, 100, 128)
+    .setColor("RANDOM")
+    .setTextFont('50px System')
+    .setTextAlign('center')
+    .setTextFont('30px Arial')
+    .addImage(background, 0, 0, 856, 376)
+    .addImage(botavatar, 0, 0, 856, 376)
+    .addText("GoodBye", 625, 105)
+    .addText(`${jadim}#${member.user.discriminator}`, 625, 145)
+    .addRoundImage(avatar, 135, 10, 256, 256, 128)
+    .toBufferAsync();
+  }
+  var welcome = JSON.parse(fs.readFileSync("./asset/welcome.json", "utf8"))
+  if (!welcome[member.guild.id]) {
+    welcome[member.guild.id] = {
+      welcome: 0
+    };
+  }
+  let channel = member.guild.channels.get(`${welcome[member.guild.id].nick}`);
+  if (!channel) return;
+  channel.send(new Discord.Attachment(await createCanvas()));
+});
+
+client.on("guildMemberAdd", member => {
+  let autorole = JSON.parse(fs.readFileSync("./asset/autorole.json", "utf8"));
+  if (!autorole[member.guild.id]) {
+    autorole[member.guild.id] = {
+      autorole: config.autorole
+    };
+  }
+  var role = autorole[member.guild.id].role;
+  if (!role) return;
+  member.addRole(role);
+});
+
+client.on('guildMemberAdd', async member => {
+  let guild = member.guild;
+  let autonick = JSON.parse(fs.readFileSync("./asset/autonick.json", "utf8"));
+  if(!autonick[member.guild.id]) return;
+  var autonicksetting = JSON.parse(fs.readFileSync("./asset/autonickoff.json", "utf8"));
+  if(!autonicksetting[member.guild.id]) {
+    autonicksetting[member.guild.id] = {
+      values: 1
+    };
+  }
+  var values = autonicksetting[member.guild.id].checker
+  if (values === undefined) return;
+  if (values === 0) return;
+  if (values === 1) {
+    let newNick = autonick[member.guild.id].nick
+    newNick = newNick.replace('{username}', member.user.username)
+    member.guild.members.get(`${member.user.id}`).setNickname(newNick)
+  }
+});
+
+fs.readdir("./commands/", (err, files) => {
+  console.log(`Loaded ${files.length} commands.`)
+  if(err) console.log(err);
+  let jsFile = files.filter(f => f.split(".").pop() === "js");
+  if(jsFile.length <= 0){
+    console.log("Couldn't find commands.");
+    return;
+  }
 })
 
-const applyText = (canvas, text) => {
-	const ctx = canvas.getContext('2d');
+client.on("message", async message => {
+  let prefixes = JSON.parse(fs.readFileSync("./asset/prefixes.json", "utf8"));
+  if(!prefixes[message.guild.id]) {
+    prefixes[message.guild.id] = {
+      prefixes: config.prefix
+    };
+  }
+  let prefix = prefixes[message.guild.id].prefixes;
+  if(message.author.bot) return undefined;
+  if(message.channel.type === 'dm') return;
+  if(message.content == (`<@${client.user.id}>`)) {
+  let embed = new Discord.RichEmbed()
+    .setColor("RANDOM")
+    .setDescription(`Hello ${message.member} My prefix in this server **${prefix}help** for more info`)
+    message.channel.send(embed)
+    }
+  let args = message.content.slice(prefix.length).trim().split(" ");
+  let cmd = args.shift().toLowerCase()
+  if(message.author.bot) return undefined;
+  if(!message.content.startsWith(prefix)) return undefined;
+  message.prefix = prefix;
+  try {
+    let commandFile = require(`./commands/${cmd}.js`);
+    commandFile.run(client, message, args, queue, color);
+  } catch (err) {
 
-	// Declare a base size of the font
-	let fontSize = 50;
-
-	do {
-		// Assign the font to the context and decrement it so it can be measured again
-		ctx.font = `${fontSize -= 10}px sans-serif`;
-		// Compare pixel width of the text to the canvas minus the approximate avatar size
-	} while (ctx.measureText(text).width > canvas.width - 300);
-
-	// Return the result to use in the actual canvas
-	return ctx.font;
-};
-
-client.on("guildMemberAdd", async (member) => {
-  const channel = member.guild.channels.find(ch => ch.name === 'welcome');
-	if (!channel) return;
-
-	const canvas = Canvas.createCanvas(650, 250);
-	const ctx = canvas.getContext('2d');
-
-	const background = await Canvas.loadImage("https://cdn.discordapp.com/attachments/630391387195703296/643710979473145856/Kuzu-no-Honkai-03-34.jpg");
-	ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-
-	ctx.strokeStyle = '#ffffff';
-	ctx.strokeRect(0, 0, canvas.width, canvas.height);
-
-  ctx.font = '28px sans-serif';
-	ctx.fillStyle = '#ffffff';
-	ctx.fillText('Welcome to the server!', canvas.width / 2.5, canvas.height / 3.5);
+    if(!coins[message.author.id]){
+      coins[message.author.id] = {
+        coins: 0
+      };
+    }
+    let coinAmt = Math.floor(Math.random() * 15) + 14;
+    let baseAmt = Math.floor(Math.random() * 15) + 14;
+    if(coinAmt === baseAmt){
+      coins[message.author.id] = {
+        coins: coins[message.author.id].coins + coinAmt
+      };
+      fs.writeFile("./asset/coins.json", JSON.stringify(coins), (err) => {
+        if (err) console.log(err)
+      });
+    }
+    let xpAdd = Math.floor(Math.random() * 15) + 14;
+    if(!xp[message.author.id]){
+      xp[message.author.id] = {
+        xp: 0,
+        level: 1
+      };
+    }
+    let curxp = xp[message.author.id].xp;
+    let curlvl = xp[message.author.id].level;
+    let nxtLvl = xp[message.author.id].level * 300;
+    xp[message.author.id].xp =  curxp + xpAdd;
+    if(nxtLvl <= xp[message.author.id].xp){
+      xp[message.author.id].level = curlvl + 1;
+    }
+    fs.writeFile("./asset/xp.json", JSON.stringify(xp), (err) => {
+      if(err) console.log(err)
+    })
+  }
+})
   
-  ctx.font = applyText(canvas, member.displayName);
-	ctx.fillStyle = '#ffffff';
-	ctx.fillText([member.displayName], canvas.width / 2.5, canvas.height / 1.8);
-  
-	// Select the font size and type from one of the natively available fonts
-//	ctx.font = '60px sans-serif';
-	// Select the style that will be used to fill the text in
-	//ctx.fillStyle = '#ffffff';
-	// Actually fill the text with a solid cmolor
-	//ctx.fillText(member.displayName, canvas.width / 2.5, canvas.height / 1.8);
-
-	ctx.beginPath();
-	ctx.arc(125, 125, 100, 0, Math.PI * 2, true);
-	ctx.closePath();
-	ctx.clip();
-
-	const avatar = await Canvas.loadImage(member.user.displayAvatarURL);
-	ctx.drawImage(avatar, 25, 25, 200, 200);
-
-	const attachment = new Discord.Attachment(canvas.toBuffer(), 'welcome-image-member.png');
-
-	channel.send(`> Hello ${member} Welcome to **${member.guild.name}!** Discord Server! 🎉`, attachment);
+client.on('message', async message => {
+  var message = message;
+  if (message.author.bot) return;
+  if (message.channel.type === 'dm') return;
+  var DEFAULTPREFIX = message.prefix
+  var {body} = await superagent
+  .get("https://kurokobot.glitch.me/")
+  if (!body[message.guild.id]) {
+    body[message.guild.id] = {
+      PREFIXES: DEFAULTPREFIX
+    };
+  }
+  var PREFIX = body[message.guild.id].PREFIXES
+  if (commandcooldown.has(message.author.id)) {
+    return;
+  }
+  commandcooldown.add(message.author.id);
+  setTimeout(() => {
+    commandcooldown.delete(message.author.id);
+  }, 2000);
+  if (message.author.bot) return undefined;
+  if (!message.content.startsWith(PREFIX)) return undefined;
+  var randomhexcolor = Math.floor(Math.random() * 16777214) + 1
+  var serverQueue = queue.get(message.guild.id);
+  var args = message.content.substring(PREFIX.length).split(" ")
+  var url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
+  var invitelink = "https://discord.gg/";
+  let command = message.content.toLowerCase().split(' ')[0];
+  command = command.slice(PREFIX.length)
+  if (command === 'play' || command === 'p') {
+    var searchString = args.slice(1).join(" ");
+    if(!searchString) return message.channel.send({embed: {
+      description: `❌ Please usage: \`${PREFIX}play <Song name | URL | Playlist URL>\``
+    }})
+    const voiceChannel = message.member.voiceChannel;
+    if (!voiceChannel) return message.channel.send({
+      embed: {
+        description: `${message.author} You are not on the voice channel, you need to be in a voice channel to play some music!.`
+      }
+    })
+    const permissions = voiceChannel.permissionsFor(client.user);
+    if (!permissions.has('CONNECT')) {
+      message.channel.send({
+        embed: {
+          description: `Sorry, cannot connect to your voice channel, make sure I have the permissions!`
+        }
+      })
+    }
+    if (!permissions.has('SPEAK')) {
+      return message.channel.send({
+        embed: {
+          description: `I cannot speak in this voice channel, make sure I have the permissions!`
+        }
+      })
+    }
+    if (url.match(/^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$/)) {
+      const playlist = await youtube.getPlaylist(url);
+      const videos = await playlist.getVideos();
+      for (const video of Object.values(videos)) {
+        const video2 = await youtube.getVideoByID(video.id);
+        await handleVideo(video2, message, voiceChannel, true);
+      }
+      return message.channel.send({
+        embed: {
+          description: `${playlist.title} has been added to the queue!`
+        }
+      })
+    } else {
+      try {
+        var video = await youtube.getVideo(url);
+      } catch (error) {
+        try {
+          var videos = await youtube.searchVideos(searchString, 10);
+          let index = 0;
+          var selection = await message.channel.send({
+            embed: {
+              description: `__**🔽 Please select your song below:**__
+              ${videos.map(video2 => `**[\`${++index}\`] **-** ${video2.title}`).join('\n')}
+              **Type in the number listed above, you have a 30 seconds before it get automatically canceled!**`
+            }
+          })
+          try {
+            var response = await message.channel.awaitMessages(msg2 => msg2.content > 0 && msg2.content < 11, {
+              maxMatches: 1,
+              time: 30000,
+              errors: ['time']
+            });
+            selection.delete();
+          } catch (err) {
+            console.error(err);
+            return message.channel.send({
+              embed: {
+                description: `No or invalid value entered, cancelling video selection.`
+              }
+            })
+            selection.delete();
+          }
+          const videoIndex = parseInt(response.first().content);
+          var video = await youtube.getVideoByID(videos[videoIndex - 1].id);
+        } catch (err) {
+          console.error(err)
+          return message.channel.send({
+            embed: {
+              description: `ERR! I could not obtain any search results.`
+            }
+          })
+        }
+      }
+      return handleVideo(video, message, voiceChannel);
+    }
+  } else if (command === 'skip' || command === 's') {
+    if (!message.member.voiceChannel) return message.channel.send({
+      embed: {
+        description: `${message.author} You are not in a voice channel!`,
+      }
+    })
+    if (!serverQueue) return message.channel.send({
+      embed: {
+        description: `Hi ${message.author}, There is nothing playing that I could skip for you.`
+      }
+    })
+    serverQueue.connection.dispatcher.end('Skip command has been used!');
+    return undefined;
+  } else if (command === 'stop') {
+    let member = message.member;
+    if (!message.member.voiceChannel) return message.channel.send({
+      embed: {
+        description: `Hi ${message.author}, You need to join voice channel.`,
+      }
+    })
+    if (!serverQueue) return message.channel.send({
+      embed: {
+        description: `Hi ${message.author}, There is nothing playing that I could stop for you.`
+      }
+    })
+    serverQueue.songs = [];
+    serverQueue.connection.dispatcher.end('Stop is already used!');
+    return message.channel.send({embed: {
+      description: `⏹ Music has been stoped!.`,
+    }}) + message.channel.send({embed: {
+      fields: [{
+      }],
+      timestamp: new Date()
+    }});
+  } else if (command === 'volume' || command === 'v') {
+    if (!message.member.voiceChannel) return message.channel.send({
+      embed: {
+        description: `${message.author}, You are not in a voice channel!.`
+      }
+    });
+    if (!serverQueue) return message.channel.send({
+      embed: {
+        description: `There is nothing playing.`
+      }
+    })
+    if (!args[1]) return message.channel.send({
+      embed: {
+        description: `The current volume is: __**${serverQueue.volume}%**__`
+      }
+    });
+    serverQueue.volume = args[1];
+    if (args[1] > 100) return message.channel.send({
+      embed: {
+        description: `${message.auhor}, Volume limit is 100%, your ear will bleeding!`
+      }
+    });
+    serverQueue.volume = args[1];
+    if (args[1] > 100) return !serverQueue.connection.setVolumeLogarithmic(args[1] / 100) + 
+    message.channel.send({
+      embed: {
+        description: `${message.author} Volume limit is 100%, your ear will bleeding!`
+      }
+    });
+    if (args[1] < 101) return serverQueue.connection.dispatcher.setVolumeLogarithmic(args[1] / 100) +
+    message.channel.send({
+      embed: {
+        description: `I set the volume to: __**${args[1]}**%__`
+      }
+    });
+  } else if (command == 'np') {
+    if (!serverQueue) return message.channel.send({
+      embed: {
+        description: `There is nothing playing.`
+      }
+    })
+    return message.channel.send({
+      embed: {
+        description: `🎶 Now playing: __**${serverQueue.songs[0].title}**__`
+      }
+    })
+  } else if (command === `queue` || command === 'q') {
+    var index = 0;
+    if (!serverQueue) return message.channel.send({
+      embed: {
+        description: `There is nothing playing.`
+      }
+    })
+    return message.channel.send({
+      embed: {
+        description: `__**Songs in the queue list:**__
+        ${serverQueue.songs.map(song => `**${index++}.** ${song.title}`).join(`\n`)}`
+      }
+    });
+  } else if (command == 'pause') {
+    if (serverQueue && serverQueue.playing) {
+      serverQueue.playing = false;
+      serverQueue.connection.dispatcher.pause();
+      return message.channel.send({
+        embed: {
+          description: `⏸ Music has paused.`
+        }
+      })
+    }
+    return message.channel.send({
+      embed: {
+        description: `There is nothing playing.`
+      }
+    })
+  } else if (command === 'resume' || command === 'r') {
+    if (serverQueue && !serverQueue.playing) {
+      serverQueue.playing = true;
+      serverQueue.connection.dispatcher.resume();
+      return message.channel.send({
+        embed: {
+          description: `⏯ Music has resumed.`
+        }
+      })
+    }
+    return message.channel.send({
+      embed: {
+        description: `There is nothing playing.`
+      }
+    })
+  }
+  return undefined;
 });
+async function handleVideo(video, message, voiceChannel, playlist = false) {
+  const serverQueue = queue.get(message.guild.id);
+  console.log(video);
+  const song = {
+    id: video.id,
+    title: Discord.Util.escapeMarkdown(video.title),
+    url: `https://www.youtube.com/watch?v=${video.id}`,
+    uploadedby: video.channel.title,
+    channelurl: `https://www.youtube.com/channel/${video.channel.id}`,
+    durationh: video.duration.hours,
+    durationm: video.duration.minutes,
+    durations: video.duration.seconds,
+    request: message.author,
+    channels: voiceChannel.name,
+  }
+  if (!serverQueue) {
+    const queueConstruct = {
+      textChannel: message.channel,
+      voiceChannel: voiceChannel,
+      connection: null,
+      songs: [],
+      volume: 100,
+      playing: true
+    };
+    queue.set(message.guild.id, queueConstruct);
+    queueConstruct.songs.push(song);
+    try {
+      var connection = await voiceChannel.join();
+      queueConstruct.connection = connection;
+      play(message.guild, queueConstruct.songs[0]);
+    } catch (error) {
+      console.error(`I Could not join the voice channel: ${error}`);
+      queue.delete(message.guild.id);
+      return message.channel.send({
+        embed: {
+          description: `I could not join the voice channel: ${error}`
+        }
+      });
+    }
+  } else {
+    var queueembed = new Discord.RichEmbed()
+    .setAuthor(`Added to queue`, `https://images-ext-1.discordapp.net/external/YwuJ9J-4k1AUUv7bj8OMqVQNz1XrJncu4j8q-o7Cw5M/http/icons.iconarchive.com/icons/dakirby309/simply-styled/256/YouTube-icon.png`)
+    .setThumbnail(`https://i.ytimg.com/vi/${song.id}/default.jpg?width=80&height=60`)
+    .addField('Title', `__[${song.title}](${song.url})__`, true)
+    .addField('Video ID', `${song.id}`, true)
+    .addField("Uploaded by", `[${song.uploadedby}](${song.channelurl})`, true)
+    .addField("Duration", `${song.durationm}min ${song.durations}sec`, true)
+    .addField("Request by", `${song.request}`, true)
+    .setFooter('Listen to music well and get a calm sensation and enjoy!', 'https://discordapp.com/channels/569155525812551686/569163685487181843/579158350915436544.png')
+    .setTimestamp();
+    serverQueue.songs.push(song);
+    console.log(serverQueue.songs);
+    if (playlist) return undefined;
+    else return message.channel.send(queueembed);
+  }
+  return undefined;
+}
+function play(guild, song) {
+  const serverQueue = queue.get(guild.id);
+  if (!song) {
+    serverQueue.voiceChannel.leave();
+    queue.delete(guild.id);
+    return;
+  }
+  console.log(serverQueue.songs);
+   const dispatcher = serverQueue.connection.playStream(ytdl(song.url, { filter: 'audioonly', quality: 'highest' }))
+  .on('end', reason => {
+    let end = new Discord.RichEmbed()
+    serverQueue.textChannel.send(end)
+    if (reason === 'Stream is not generating quickly enough.') console.log('Song ended.');
+    else console.log(reason);
+    serverQueue.songs.shift();
+    play(guild, serverQueue.songs[0]);
+  })
 
-/*client.on('guildMemberAdd', async member => {
-	const channel = member.guild.channels.find(ch => ch.name === 'welcome');
-	if (!channel) return;
 
-	const canvas = Canvas.createCanvas(700, 250);
-	const ctx = canvas.getContext('2d');
+  .on('error', error => console.error(error));
+  dispatcher.setVolumeLogarithmic(serverQueue.volume / 100);
+  let startembed = new Discord.RichEmbed()
+.setColor("RANDOM")
+  .setAuthor(`Start Playing`, `https://images-ext-1.discordapp.net/external/YwuJ9J-4k1AUUv7bj8OMqVQNz1XrJncu4j8q-o7Cw5M/http/icons.iconarchive.com/icons/dakirby309/simply-styled/256/YouTube-icon.png`)
+  .setThumbnail(`https://i.ytimg.com/vi/${song.id}/default.jpg?width=80&height=60`)
+  .addField(' :film_frames: Title', `__[${song.title}](${song.url})__`, true)
+  .addField(' :electric_plug: Video ID', `${song.id}`, true)
+  .addField(" :movie_camera: Uploaded by", `[${song.uploadedby}](${song.channelurl})`, true)
+  .addField(" :hourglass: Duration", `${song.durationh}hrs ${song.durationm}mins ${song.durations}secs`, true)
+  .addField(" :red_circle: Request by", `${song.request}`, true)
+  .addField(" :dvd: Voice Channel", `${song.channels}`, true)
+  .addField(" :loud_sound: Volume", `${serverQueue.volume}%`, true)
+  .setFooter('Listen to music well and get a calm sensation and enjoy!', 'https://discordapp.com/channels/569155525812551686/569163685487181843/579158350915436544.png')
+  .setTimestamp();
+  serverQueue.textChannel.send(startembed);
+}
 
-	const background = await Canvas.loadImage('https://images.app.goo.gl/GvqY1PVAiPCtVhh79.jpg');
-	ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-
-	ctx.strokeStyle = '#74037b';
-	ctx.strokeRect(0, 0, canvas.width, canvas.height);
-
-	// Slightly smaller text placed above the member's display name
-	ctx.font = '28px sans-serif';
-	ctx.fillStyle = '#ffffff';
-	ctx.fillText('Welcome to the server,', canvas.width / 2.5, canvas.height / 3.5);
-
-	// Add an exclamation point here and below
-	ctx.font = applyText(canvas, `${member.displayName}!`);
-	ctx.fillStyle = '#ffffff';
-	ctx.fillText(`${member.displayName}!`, canvas.width / 2.5, canvas.height / 1.8);
-
-	ctx.beginPath();
-	ctx.arc(125, 125, 100, 0, Math.PI * 2, true);
-	ctx.closePath();
-	ctx.clip();
-
-	const avatar = await Canvas.loadImage(member.user.displayAvatarURL);
-	ctx.drawImage(avatar, 25, 25, 200, 200);
-
-	const attachment = new Discord.MessageAttachment(canvas.toBuffer(), 'welcome-image.png');
-
-	channel.send(`Welcome to the server, ${member}!`, attachment);
-});*/
-
-client.on("guildMemberRemove", async (member) => {
-  const channel = member.guild.channels.find(ch => ch.name === 'welcome');
-	if (!channel) return;
-
-	const canvas = Canvas.createCanvas(650, 250);
-	const ctx = canvas.getContext('2d');
-
-	const background = await Canvas.loadImage("https://cdn.discordapp.com/attachments/630391387195703296/643710979473145856/Kuzu-no-Honkai-03-34.jpg");
-	ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-
-	ctx.strokeStyle = '#ffffff';
-	ctx.strokeRect(0, 0, canvas.width, canvas.height);
-
-  ctx.font = '28px sans-serif';
-	ctx.fillStyle = '#ffffff';
-	ctx.fillText('Goodbyee the server!', canvas.width / 2.5, canvas.height / 3.5);
-  
-  ctx.font = applyText(canvas, member.displayName);
-	ctx.fillStyle = '#ffffff';
-	ctx.fillText([member.displayName], canvas.width / 2.5, canvas.height / 1.8);
-  
-	// Select the font size and type from one of the natively available fonts
-//	ctx.font = '60px sans-serif';
-	// Select the style that will be used to fill the text in
-	//ctx.fillStyle = '#ffffff';
-	// Actually fill the text with a solid cmolor
-	//ctx.fillText(member.displayName, canvas.width / 2.5, canvas.height / 1.8);
-
-	ctx.beginPath();
-	ctx.arc(125, 125, 100, 0, Math.PI * 2, true);
-	ctx.closePath();
-	ctx.clip();
-
-	const avatar = await Canvas.loadImage(member.user.displayAvatarURL);
-	ctx.drawImage(avatar, 25, 25, 200, 200);
-
-	const attachment = new Discord.Attachment(canvas.toBuffer(), 'welcome-image-member.png');
-
-	channel.send(`> ${member.user.username} just left **${member.guild.name}!** Discord Server! Bye bye **${member.user.username}**! 🎈`, attachment);
-});
-    
-client.login(process.env.TOKEN)
+client.login(process.env.TOKEN);
