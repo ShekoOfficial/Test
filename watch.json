@@ -1,21 +1,10 @@
-
 {
   "install": {
-    "include": [
-      "^package\\.json$",
-      "^\\.env$"
-    ]
+    "include": ["^package\\.json$", "^\\.nv$"]
   },
   "restart": {
-    "exclude": [
-      "^public/",
-      "^dist/",
-      "^commands/"
-    ],
-    "include": [
-      "\\.js$",
-      "\\.json"
-    ]
+    "exclude": ["^public/", "^dist/"],
+    "include": ["\\.js$", "\\.json"]
   },
-  "throttle": 86400000
+  "throttle": 900000
 }
